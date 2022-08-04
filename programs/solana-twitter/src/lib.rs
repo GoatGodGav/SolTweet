@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::system_program;
 
 declare_id!("7UqgJED9LZXYUbAbmo3BSryr21CDzPcUUWkW8X85gV4C");
 
@@ -6,16 +7,42 @@ declare_id!("7UqgJED9LZXYUbAbmo3BSryr21CDzPcUUWkW8X85gV4C");
 pub mod solana_twitter {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        Ok(())
+    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String) -> ProgramResult { //We've added two additional arguments: topic and content. Any argument which is not an account can be provided this way, after the context.
+    let tweet: &mut Account<Tweet> = &mut ctx.accounts.tweet;
+    let author: &Signer = &ctx.accounts.author;
+    let clock: Clock = Clock::get().unwrap();
+
+    if topic.chars().count() > 50 {
+        // Return a error...
+        return Err(ErrorCode::TopicTooLong.into())
+
     }
+
+    if content.chars().count() > 280 {
+        // Return a error...
+        return Err(ErrorCode::ContentTooLong.into())
+
+    }
+
+    tweet.author = *author.key;
+    tweet.timestamp = clock.unix_timestamp;
+    tweet.topic = topic;
+    tweet.content = content;
+
+    
+    Ok(())
+    }
+
 }
 
 #[derive(Accounts)]
 pub struct SendTweet<'info> {
+    #[account(init, payer = author, space = Tweet::LEN)]
     pub tweet: Account<'info, Tweet>,
+    #[account(mut)]
     pub author: Signer<'info>,
-    pub system_program: AccountInfo<'info>,
+    #[account(address = system_program::ID)]
+    pub system_program: AccountInfo<'info>, //can be done with pub system_program: Program<'info, System>, in newer versions of anchor
 }
 
 
@@ -43,4 +70,12 @@ impl Tweet {
         + TIMESTAMP_LENGTH // Timestamp.
         + STRING_LENGTH_PREFIX + MAX_TOPIC_LENGTH // Topic.
         + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH; // Content.
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("The provided topic should be 50 characters long maximum.")]
+    TopicTooLong,
+    #[msg("The provided content should be 280 characters long maximum.")]
+    ContentTooLong,
 }
