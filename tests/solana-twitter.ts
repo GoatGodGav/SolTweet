@@ -92,7 +92,7 @@ describe("solana-twitter", () => {
     assert.ok(tweetAccount.timestamp);
   });
 
-  it('cannot provide a topic with more than 50 characters', async () => {
+  /*it('cannot provide a topic with more than 50 characters', async () => {
     try {
       const tweet = anchor.web3.Keypair.generate();
       const topicWith51Chars = 'x'.repeat(51);
@@ -130,7 +130,7 @@ describe("solana-twitter", () => {
     }
 
     assert.fail('The instruction should have failed with a 281-character content.');
-  });
+  });*/
 
   it('can fetch all tweets', async () => {
     const tweetAccounts = await program.account.tweet.all();
