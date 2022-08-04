@@ -7,7 +7,7 @@ declare_id!("7UqgJED9LZXYUbAbmo3BSryr21CDzPcUUWkW8X85gV4C");
 pub mod solana_twitter {
     use super::*;
 
-    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String) -> ProgramResult { //We've added two additional arguments: topic and content. Any argument which is not an account can be provided this way, after the context.
+    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String) -> Result<()> { //We've added two additional arguments: topic and content. Any argument which is not an account can be provided this way, after the context.
     let tweet: &mut Account<Tweet> = &mut ctx.accounts.tweet;
     let author: &Signer = &ctx.accounts.author;
     let clock: Clock = Clock::get().unwrap();
@@ -42,6 +42,7 @@ pub struct SendTweet<'info> {
     #[account(mut)]
     pub author: Signer<'info>,
     #[account(address = system_program::ID)]
+    /// CHECK: This is not dangerous because we don't read or write from this account
     pub system_program: AccountInfo<'info>, //can be done with pub system_program: Program<'info, System>, in newer versions of anchor
 }
 
